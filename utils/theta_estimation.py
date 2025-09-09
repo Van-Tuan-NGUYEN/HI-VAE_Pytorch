@@ -49,6 +49,8 @@ def theta_estimation_from_ys(samples_y, samples_s, feat_types_list, miss_list, t
         "ordinal": theta_ordinal,
         "surv": theta_surv,
         "surv_weibull": theta_surv_weibull,
+        "surv_loglog": theta_surv_loglog,
+        "surv_piecewise": theta_surv_piecewise,
     }
 
     theta = []
@@ -187,7 +189,7 @@ def theta_surv(observed_y, missing_y, observed_s, missing_s, condition_indices, 
 
 def theta_surv_weibull(observed_y, missing_y, observed_s, missing_s, condition_indices, theta_layer):
     """
-    Computes the mean and standard deviation parameter of Weibull distribution for survival data (survival time and censoring time).
+    Computes the scale and shape parameters of Weibull distribution for survival data (survival time and censoring time).
 
     This function estimates parameters for survival data in a survival analysis model.
 
@@ -215,6 +217,77 @@ def theta_surv_weibull(observed_y, missing_y, observed_s, missing_s, condition_i
         layer=theta_layer["theta"]).T
 
     return [h2_shape_T, h2_scale_T, h2_shape_C, h2_scale_C]
+
+
+def theta_surv_loglog(observed_y, missing_y, observed_s, missing_s, condition_indices, theta_layer):
+    """
+    Computes the scale and shape parameters of log logistic distribution for survival data (survival time and censoring time).
+
+    This function estimates parameters for survival data in a survival analysis model.
+
+    Parameters:
+    -----------
+    (Same as `theta_real`)
+
+    Returns:
+    --------
+    list :
+        `[h2_shape_T, h2_scale_T, h2_shape_C, h2_scale_C]` where:
+        - `h2_shape_T` is the estimated shape layer for survival time.
+        - `h2_scale_T` is the estimated scale layer for survival time.
+        - `h2_shape_C` is the estimated shape layer for censoring time.
+        - `h2_scale_C` is the estimated scale layer for censoring time.
+
+    Notes:
+    ------
+    - Identical to `theta_real`, but tailored for **positive** real-valued survival data.
+    """
+    h2_shape_T, h2_scale_T, h2_shape_C, h2_scale_C = observed_data_layer(
+        torch.cat([observed_y, observed_s], dim=1),
+        torch.cat([missing_y, missing_s], dim=1),
+        condition_indices,
+        layer=theta_layer["theta"]).T
+
+    return [h2_shape_T, h2_scale_T, h2_shape_C, h2_scale_C]
+
+def theta_surv_piecewise(observed_y, missing_y, observed_s, missing_s, condition_indices, theta_layer):
+    """
+    Computes the density function for survival data (survival time and censoring time).
+
+    This function estimates density function for survival data in a survival analysis model.
+
+    Parameters:
+    -----------
+    (Same as `theta_real`)
+
+    Returns:
+    --------
+    list :
+        `[h2_shape_T, h2_scale_T, h2_shape_C, h2_scale_C]` where:
+        - `h2_shape_T` is the estimated shape layer for survival time.
+        - `h2_scale_T` is the estimated scale layer for survival time.
+        - `h2_shape_C` is the estimated shape layer for censoring time.
+        - `h2_scale_C` is the estimated scale layer for censoring time.
+
+    Notes:
+    ------
+    - Identical to `theta_real`, but tailored for **positive** real-valued survival data.
+    """
+    h2_theta_T = observed_data_layer(
+        torch.cat([observed_y, observed_s], dim=1),
+        torch.cat([missing_y, missing_s], dim=1),
+        condition_indices,
+        layer=theta_layer["theta_T"])
+
+    h2_theta_C = observed_data_layer(
+        torch.cat([observed_y, observed_s], dim=1),
+        torch.cat([missing_y, missing_s], dim=1),
+        condition_indices,
+        layer=theta_layer["theta_C"])
+
+    intervals = theta_layer["intervals"]
+
+    return [h2_theta_T, h2_theta_C, intervals]
 
 def theta_pos(observed_y, missing_y, observed_s, missing_s, condition_indices, theta_layer):
     """

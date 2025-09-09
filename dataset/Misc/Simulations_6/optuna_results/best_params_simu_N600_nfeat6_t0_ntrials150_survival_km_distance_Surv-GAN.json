@@ -1,0 +1,1 @@
+{"generator_n_layers_hidden": 1, "generator_n_units_hidden": 50, "generator_nonlin": "elu", "generator_dropout": 0.11861126837730548, "discriminator_n_layers_hidden": 3, "discriminator_n_units_hidden": 150, "discriminator_nonlin": "relu", "discriminator_dropout": 0.029732934912357126, "lr": 0.001, "weight_decay": 0.0001, "encoder_max_clusters": 19}
